@@ -6,6 +6,58 @@
   <title>阿里国际站访客分析工具</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
+    /* 密码锁遮罩 */
+    #lockScreen {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #ff6a00, #ff9a00);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    #lockScreen.hidden { display: none; }
+    .lock-box {
+      background: white;
+      border-radius: 20px;
+      padding: 48px 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      width: 340px;
+    }
+    .lock-box .lock-icon { font-size: 48px; margin-bottom: 16px; }
+    .lock-box h2 { font-size: 20px; font-weight: 700; color: #333; margin-bottom: 6px; }
+    .lock-box p { font-size: 13px; color: #999; margin-bottom: 24px; }
+    .lock-box input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .lock-box input:focus { border-color: #ff9a00; }
+    .lock-box input.error { border-color: #f44336; animation: shake 0.3s; }
+    .lock-box .err-msg { font-size: 12px; color: #f44336; margin-top: 8px; min-height: 18px; }
+    .lock-box button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 13px;
+      background: linear-gradient(135deg, #ff6a00, #ff9a00);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .lock-box button:hover { opacity: 0.9; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+    }
+  </style>
+  <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -195,6 +247,20 @@
   </style>
 </head>
 <body>
+
+<!-- 密码锁 -->
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <h2>访问验证</h2>
+    <p>请输入密码以继续使用</p>
+    <input type="password" id="pwdInput" placeholder="请输入密码" maxlength="20"
+      onkeydown="if(event.key==='Enter') checkPwd()" />
+    <div class="err-msg" id="errMsg"></div>
+    <button onclick="checkPwd()">确认</button>
+  </div>
+</div>
+
 <header>
   <h1>🛒 阿里国际站访客分析工具</h1>
   <p>上传访客详情 Excel，一键分析商机词 & 高转化国家</p>
@@ -261,6 +327,31 @@
 </div>
 
 <script>
+// ===== 密码锁 =====
+(function() {
+  const PASS = '666888';
+  const KEY  = 'vat_auth';
+  if (sessionStorage.getItem(KEY) === '1') {
+    document.getElementById('lockScreen').classList.add('hidden');
+    return;
+  }
+  document.getElementById('lockScreen').classList.remove('hidden');
+})();
+
+function checkPwd() {
+  const input = document.getElementById('pwdInput');
+  const errMsg = document.getElementById('errMsg');
+  if (input.value === '666888') {
+    sessionStorage.setItem('vat_auth', '1');
+    document.getElementById('lockScreen').classList.add('hidden');
+  } else {
+    input.classList.add('error');
+    errMsg.textContent = '密码错误，请重试';
+    input.value = '';
+    setTimeout(() => input.classList.remove('error'), 400);
+  }
+}
+
 // ===== 国家英文→中文映射 =====
 const countryZH = {
   'United States':'美国','China':'中国','India':'印度','United Kingdom':'英国',
