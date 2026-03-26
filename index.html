@@ -22,9 +22,8 @@
     header h1 { font-size: 22px; font-weight: 700; }
     header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 20px; }
 
-    /* 拖拽区域 */
     .drop-zone {
       border: 2.5px dashed #ff9a00;
       border-radius: 16px;
@@ -34,10 +33,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .drop-zone:hover, .drop-zone.dragover {
-      background: #fff8f0;
-      border-color: #ff6a00;
-    }
+    .drop-zone:hover, .drop-zone.dragover { background: #fff8f0; border-color: #ff6a00; }
     .drop-zone .icon { font-size: 48px; margin-bottom: 12px; }
     .drop-zone h2 { font-size: 18px; color: #555; }
     .drop-zone p { font-size: 13px; color: #999; margin-top: 8px; }
@@ -55,7 +51,6 @@
     }
     .btn-upload:hover { background: #e05c00; }
 
-    /* 状态提示 */
     .status {
       display: none;
       background: white;
@@ -68,7 +63,6 @@
     }
     .status.show { display: block; }
 
-    /* 结果区域 */
     .results { display: none; margin-top: 28px; }
     .results.show { display: block; }
 
@@ -95,20 +89,17 @@
       margin-bottom: 24px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .section h3 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 16px;
+    .section-header {
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      margin-bottom: 16px;
     }
+    .section-header h3 { font-size: 16px; font-weight: 700; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+    /* 可排序表头 */
     thead th {
       background: #fff8f0;
       padding: 10px 12px;
@@ -116,13 +107,51 @@
       font-weight: 600;
       color: #666;
       border-bottom: 2px solid #ffe0b2;
+      white-space: nowrap;
     }
+    thead th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th.sortable:hover { background: #ffe8cc; color: #e06000; }
+    thead th .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      font-size: 11px;
+      opacity: 0.4;
+    }
+    thead th.sort-asc .sort-icon::after  { content: '▲'; opacity: 1; color: #ff6a00; }
+    thead th.sort-desc .sort-icon::after { content: '▼'; opacity: 1; color: #ff6a00; }
+    thead th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: '⇅'; }
+
     tbody tr:hover { background: #fffaf5; }
-    tbody td {
-      padding: 9px 12px;
-      border-bottom: 1px solid #f0f0f0;
-      color: #444;
+    tbody td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; color: #444; }
+
+    /* 关键词复制 */
+    .word-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
+    .copy-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #bbb;
+      border-radius: 4px;
+      flex-shrink: 0;
+      transition: all 0.15s;
+      padding: 0;
+    }
+    .copy-btn:hover { color: #ff6a00; background: #fff0e0; }
+    .copy-btn.copied { color: #4caf50; }
+    .copy-btn svg { width: 13px; height: 13px; }
+
     .badge {
       display: inline-block;
       padding: 2px 8px;
@@ -134,17 +163,14 @@
     .badge-mid  { background: #e8f5e9; color: #388e3c; }
     .badge-low  { background: #f5f5f5; color: #999; }
 
-    .conv-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .conv-bar { display: flex; align-items: center; gap: 8px; }
     .conv-bar .bar-bg {
       flex: 1;
       height: 6px;
       background: #f0f0f0;
       border-radius: 3px;
       overflow: hidden;
+      min-width: 50px;
     }
     .conv-bar .bar-fill {
       height: 100%;
@@ -154,18 +180,18 @@
     .conv-bar span { font-size: 12px; color: #666; min-width: 38px; text-align: right; }
 
     .btn-download {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 8px 20px;
+      padding: 7px 18px;
       background: #ff6a00;
       color: white;
       border-radius: 8px;
       font-size: 13px;
       cursor: pointer;
       border: none;
-      float: right;
     }
     .btn-download:hover { background: #e05c00; }
+
+    /* 国家中文名 */
+    .country-zh { font-size: 11px; color: #999; margin-left: 2px; }
   </style>
 </head>
 <body>
@@ -175,7 +201,6 @@
 </header>
 
 <div class="container">
-  <!-- 拖拽上传 -->
   <div class="drop-zone" id="dropZone">
     <div class="icon">📊</div>
     <h2>拖入访客详情 Excel 文件</h2>
@@ -187,24 +212,24 @@
   <div class="status" id="status">⏳ 正在解析数据...</div>
 
   <div class="results" id="results">
-    <!-- 汇总卡片 -->
     <div class="summary-cards" id="summaryCards"></div>
 
     <!-- 商机词 -->
     <div class="section">
-      <h3>🔑 商机词汇总（进店来源词）
+      <div class="section-header">
+        <h3>🔑 商机词汇总（进店来源词）</h3>
         <button class="btn-download" onclick="downloadCSV('words')">下载 CSV</button>
-      </h3>
+      </div>
       <table id="wordsTable">
         <thead>
           <tr>
             <th>#</th>
             <th>关键词</th>
-            <th>访客数</th>
-            <th>询盘</th>
-            <th>TM咨询</th>
-            <th>转化率</th>
-            <th>潜力</th>
+            <th class="sortable" data-table="words" data-key="cnt">访客数<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="words" data-key="inq">询盘<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="words" data-key="tm">TM咨询<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="words" data-key="conv">转化率<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="words" data-key="convScore">潜力<span class="sort-icon"></span></th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -213,19 +238,20 @@
 
     <!-- 高转化国家 -->
     <div class="section">
-      <h3>🌍 高转化国家分析
+      <div class="section-header">
+        <h3>🌍 高转化国家分析</h3>
         <button class="btn-download" onclick="downloadCSV('countries')">下载 CSV</button>
-      </h3>
+      </div>
       <table id="countriesTable">
         <thead>
           <tr>
             <th>#</th>
             <th>国家</th>
-            <th>访客数</th>
-            <th>询盘</th>
-            <th>TM咨询</th>
-            <th>L1+买家</th>
-            <th>转化率</th>
+            <th class="sortable" data-table="countries" data-key="cnt">访客数<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="countries" data-key="inq">询盘<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="countries" data-key="tm">TM咨询<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="countries" data-key="l1">L1+买家<span class="sort-icon"></span></th>
+            <th class="sortable" data-table="countries" data-key="conv">转化率<span class="sort-icon"></span></th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -235,15 +261,58 @@
 </div>
 
 <script>
+// ===== 国家英文→中文映射 =====
+const countryZH = {
+  'United States':'美国','China':'中国','India':'印度','United Kingdom':'英国',
+  'Germany':'德国','France':'法国','Brazil':'巴西','Canada':'加拿大',
+  'Australia':'澳大利亚','Japan':'日本','South Korea':'韩国','Mexico':'墨西哥',
+  'Italy':'意大利','Spain':'西班牙','Netherlands':'荷兰','Russia':'俄罗斯',
+  'Turkey':'土耳其','Saudi Arabia':'沙特阿拉伯','UAE':'阿联酋',
+  'United Arab Emirates':'阿联酋','Pakistan':'巴基斯坦','Bangladesh':'孟加拉国',
+  'Egypt':'埃及','Nigeria':'尼日利亚','South Africa':'南非','Indonesia':'印度尼西亚',
+  'Malaysia':'马来西亚','Thailand':'泰国','Vietnam':'越南','Philippines':'菲律宾',
+  'Singapore':'新加坡','Argentina':'阿根廷','Chile':'智利','Colombia':'哥伦比亚',
+  'Peru':'秘鲁','Poland':'波兰','Ukraine':'乌克兰','Sweden':'瑞典',
+  'Norway':'挪威','Denmark':'丹麦','Finland':'芬兰','Belgium':'比利时',
+  'Switzerland':'瑞士','Austria':'奥地利','Portugal':'葡萄牙','Greece':'希腊',
+  'Czech Republic':'捷克','Romania':'罗马尼亚','Hungary':'匈牙利',
+  'Israel':'以色列','Iran':'伊朗','Iraq':'伊拉克','Kuwait':'科威特',
+  'Qatar':'卡塔尔','Oman':'阿曼','Jordan':'约旦','Lebanon':'黎巴嫩',
+  'Morocco':'摩洛哥','Algeria':'阿尔及利亚','Tunisia':'突尼斯','Kenya':'肯尼亚',
+  'Ghana':'加纳','Ethiopia':'埃塞俄比亚','Tanzania':'坦桑尼亚','Cameroon':'喀麦隆',
+  'New Zealand':'新西兰','Taiwan':'台湾','Hong Kong':'香港','Macau':'澳门',
+  'Sri Lanka':'斯里兰卡','Nepal':'尼泊尔','Myanmar':'缅甸','Cambodia':'柬埔寨',
+  'Kazakhstan':'哈萨克斯坦','Uzbekistan':'乌兹别克斯坦','Azerbaijan':'阿塞拜疆',
+  'Georgia':'格鲁吉亚','Belarus':'白俄罗斯','Serbia':'塞尔维亚',
+  'Croatia':'克罗地亚','Slovakia':'斯洛伐克','Bulgaria':'保加利亚',
+  'Lithuania':'立陶宛','Latvia':'拉脱维亚','Estonia':'爱沙尼亚',
+  'Ecuador':'厄瓜多尔','Bolivia':'玻利维亚','Paraguay':'巴拉圭',
+  'Uruguay':'乌拉圭','Venezuela':'委内瑞拉','Guatemala':'危地马拉',
+  'Honduras':'洪都拉斯','Dominican Republic':'多米尼加','Cuba':'古巴',
+  'Puerto Rico':'波多黎各','Jamaica':'牙买加','Trinidad and Tobago':'特立尼达和多巴哥',
+  'Senegal':'塞内加尔','Ivory Coast':'科特迪瓦','Angola':'安哥拉',
+  'Mozambique':'莫桑比克','Zambia':'赞比亚','Zimbabwe':'津巴布韦',
+  'Sudan':'苏丹','Libya':'利比亚','Somalia':'索马里',
+};
+
+function getZH(name) {
+  return countryZH[name] || countryZH[name.trim()] || '';
+}
+
+// ===== 排序状态 =====
+const sortState = {
+  words:     { key: 'cnt', dir: 'desc' },
+  countries: { key: 'conv', dir: 'desc' },
+};
+
 let wordData = [], countryData = [];
 
-// 拖拽
+// ===== 拖拽上传 =====
 const dropZone = document.getElementById('dropZone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
+  e.preventDefault(); dropZone.classList.remove('dragover');
   handleFile(e.dataTransfer.files[0]);
 });
 document.getElementById('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
@@ -254,7 +323,6 @@ function handleFile(file) {
   status.textContent = `⏳ 正在解析「${file.name}」...`;
   status.classList.add('show');
   document.getElementById('results').classList.remove('show');
-
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -269,9 +337,9 @@ function handleFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
+// ===== 分析 =====
 function analyze(rows) {
   const header = rows[0];
-  // 自动找列索引
   const colIdx = (keywords) => {
     for (const kw of keywords) {
       const idx = header.findIndex(h => String(h).includes(kw));
@@ -289,26 +357,21 @@ function analyze(rows) {
   const wordCount = {}, wordInq = {}, wordTM = {};
   const cntCount = {}, cntInq = {}, cntTM = {}, cntL1 = {};
   let totalVisitors = 0, totalInq = 0, totalTM = 0;
-
   const skipWords = new Set(['notag','c','b','none','- - -','-','','null']);
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.every(c => c === '')) continue;
     totalVisitors++;
-
     const inq = String(row[iInquiry] || '').trim() === '是';
     const tm  = String(row[iTM] || '').trim() === '是';
     if (inq) totalInq++;
     if (tm) totalTM++;
 
-    // 商机词
     if (iEntryWord >= 0) {
       const raw = String(row[iEntryWord] || '').trim();
       if (!skipWords.has(raw.toLowerCase())) {
-        // 拆分粘连词（小写接大写）
-        const parts = raw.split(/(?<=[a-z])(?=[A-Z])/);
-        parts.forEach(w => {
+        raw.split(/(?<=[a-z])(?=[A-Z])/).forEach(w => {
           w = w.trim();
           if (w.length > 3 && !skipWords.has(w.toLowerCase())) {
             wordCount[w] = (wordCount[w] || 0) + 1;
@@ -319,7 +382,6 @@ function analyze(rows) {
       }
     }
 
-    // 国家
     if (iCountry >= 0) {
       const c = String(row[iCountry] || '').trim();
       if (c && c.toLowerCase() !== 'none') {
@@ -332,27 +394,36 @@ function analyze(rows) {
     }
   }
 
-  // 整理商机词
   wordData = Object.entries(wordCount)
-    .map(([w, cnt]) => ({ word: w, cnt, inq: wordInq[w]||0, tm: wordTM[w]||0, conv: ((wordInq[w]||0)+(wordTM[w]||0))/cnt*100 }))
-    .sort((a, b) => b.cnt - a.cnt)
+    .map(([w, cnt]) => {
+      const inq = wordInq[w]||0, tm = wordTM[w]||0;
+      const conv = (inq + tm) / cnt * 100;
+      return { word: w, cnt, inq, tm, conv, convScore: conv >= 10 ? 2 : conv >= 3 ? 1 : 0 };
+    })
     .slice(0, 50);
 
-  // 整理国家（访客>=3）
   countryData = Object.entries(cntCount)
     .filter(([,cnt]) => cnt >= 3)
-    .map(([c, cnt]) => ({ country: c, cnt, inq: cntInq[c]||0, tm: cntTM[c]||0, l1: cntL1[c]||0, conv: ((cntInq[c]||0)+(cntTM[c]||0))/cnt*100 }))
-    .sort((a, b) => b.conv - a.conv || b.cnt - a.cnt)
-    .slice(0, 30);
+    .map(([c, cnt]) => {
+      const inq = cntInq[c]||0, tm = cntTM[c]||0;
+      return { country: c, zh: getZH(c), cnt, inq, tm, l1: cntL1[c]||0, conv: (inq+tm)/cnt*100 };
+    })
+    .slice(0, 50);
 
   renderSummary(totalVisitors, totalInq, totalTM, Object.keys(wordCount).length, Object.keys(cntCount).length);
+
+  sortState.words     = { key: 'cnt',  dir: 'desc' };
+  sortState.countries = { key: 'conv', dir: 'desc' };
   renderWords();
   renderCountries();
+  updateSortIcons('words');
+  updateSortIcons('countries');
 
   document.getElementById('status').classList.remove('show');
   document.getElementById('results').classList.add('show');
 }
 
+// ===== 渲染汇总卡片 =====
 function renderSummary(visitors, inq, tm, words, countries) {
   const conv = visitors > 0 ? ((inq + tm) / visitors * 100).toFixed(1) : 0;
   document.getElementById('summaryCards').innerHTML = `
@@ -365,16 +436,40 @@ function renderSummary(visitors, inq, tm, words, countries) {
   `;
 }
 
+// ===== 复制图标 SVG =====
+const copySVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+</svg>`;
+const checkSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="20 6 9 17 4 12"/>
+</svg>`;
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = checkSVG;
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = copySVG; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ===== 渲染商机词表格 =====
 function renderWords() {
-  const maxConv = Math.max(...wordData.map(d => d.conv), 1);
+  const { key, dir } = sortState.words;
+  const sorted = [...wordData].sort((a, b) => dir === 'desc' ? b[key] - a[key] : a[key] - b[key]);
+  const maxConv = Math.max(...sorted.map(d => d.conv), 1);
   const tbody = document.querySelector('#wordsTable tbody');
-  tbody.innerHTML = wordData.map((d, i) => {
+  tbody.innerHTML = sorted.map((d, i) => {
     const badge = d.conv >= 10 ? '<span class="badge badge-high">高潜力</span>'
                 : d.conv >= 3  ? '<span class="badge badge-mid">中潜力</span>'
                 : '<span class="badge badge-low">待培育</span>';
     return `<tr>
       <td>${i+1}</td>
-      <td><strong>${d.word}</strong></td>
+      <td>
+        <div class="word-cell">
+          <strong>${d.word}</strong>
+          <button class="copy-btn" onclick="copyText(this,'${d.word.replace(/'/g,"\\'")}');" title="复制关键词">${copySVG}</button>
+        </div>
+      </td>
       <td>${d.cnt}</td>
       <td>${d.inq}</td>
       <td>${d.tm}</td>
@@ -389,12 +484,18 @@ function renderWords() {
   }).join('');
 }
 
+// ===== 渲染国家表格 =====
 function renderCountries() {
-  const maxConv = Math.max(...countryData.map(d => d.conv), 1);
+  const { key, dir } = sortState.countries;
+  const sorted = [...countryData].sort((a, b) => dir === 'desc' ? b[key] - a[key] : a[key] - b[key]);
+  const maxConv = Math.max(...sorted.map(d => d.conv), 1);
   const tbody = document.querySelector('#countriesTable tbody');
-  tbody.innerHTML = countryData.map((d, i) => `<tr>
+  tbody.innerHTML = sorted.map((d, i) => `<tr>
     <td>${i+1}</td>
-    <td><strong>${d.country}</strong></td>
+    <td>
+      <strong>${d.country}</strong>
+      ${d.zh ? `<span class="country-zh">（${d.zh}）</span>` : ''}
+    </td>
     <td>${d.cnt}</td>
     <td>${d.inq}</td>
     <td>${d.tm}</td>
@@ -408,19 +509,53 @@ function renderCountries() {
   </tr>`).join('');
 }
 
+// ===== 排序逻辑 =====
+function updateSortIcons(table) {
+  const { key, dir } = sortState[table];
+  document.querySelectorAll(`#${table === 'words' ? 'wordsTable' : 'countriesTable'} thead th.sortable`).forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.key === key) {
+      th.classList.add(dir === 'desc' ? 'sort-desc' : 'sort-asc');
+    }
+  });
+}
+
+document.addEventListener('click', e => {
+  const th = e.target.closest('th.sortable');
+  if (!th) return;
+  const table = th.dataset.table;
+  const key   = th.dataset.key;
+  if (sortState[table].key === key) {
+    sortState[table].dir = sortState[table].dir === 'desc' ? 'asc' : 'desc';
+  } else {
+    sortState[table] = { key, dir: 'desc' };
+  }
+  if (table === 'words') renderWords();
+  else renderCountries();
+  updateSortIcons(table);
+});
+
+// ===== 下载 CSV =====
 function downloadCSV(type) {
   let csv = '', filename = '';
+  const { key, dir } = sortState[type === 'words' ? 'words' : 'countries'];
   if (type === 'words') {
-    csv = '排名,关键词,访客数,询盘,TM咨询,转化率\n';
-    csv += wordData.map((d,i) => `${i+1},"${d.word}",${d.cnt},${d.inq},${d.tm},${d.conv.toFixed(1)}%`).join('\n');
+    const sorted = [...wordData].sort((a,b) => dir==='desc' ? b[key]-a[key] : a[key]-b[key]);
+    csv = '排名,关键词,访客数,询盘,TM咨询,转化率,潜力\n';
+    csv += sorted.map((d,i) => {
+      const pot = d.conv>=10?'高潜力':d.conv>=3?'中潜力':'待培育';
+      return `${i+1},"${d.word}",${d.cnt},${d.inq},${d.tm},${d.conv.toFixed(1)}%,${pot}`;
+    }).join('\n');
     filename = '商机词分析.csv';
   } else {
-    csv = '排名,国家,访客数,询盘,TM咨询,L1+买家,转化率\n';
-    csv += countryData.map((d,i) => `${i+1},"${d.country}",${d.cnt},${d.inq},${d.tm},${d.l1},${d.conv.toFixed(1)}%`).join('\n');
+    const sorted = [...countryData].sort((a,b) => dir==='desc' ? b[key]-a[key] : a[key]-b[key]);
+    csv = '排名,国家,中文名,访客数,询盘,TM咨询,L1+买家,转化率\n';
+    csv += sorted.map((d,i) =>
+      `${i+1},"${d.country}","${d.zh||''}",${d.cnt},${d.inq},${d.tm},${d.l1},${d.conv.toFixed(1)}%`
+    ).join('\n');
     filename = '高转化国家分析.csv';
   }
-  const bom = '\uFEFF';
-  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
