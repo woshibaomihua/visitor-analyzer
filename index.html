@@ -244,6 +244,32 @@
 
     /* 国家中文名 */
     .country-zh { font-size: 11px; color: #999; margin-left: 2px; }
+
+    /* 关键词搜索框 */
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f7f7f7;
+      border: 1.5px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 5px 10px;
+      transition: border-color 0.2s;
+    }
+    .search-wrap:focus-within { border-color: #ff9a00; background: #fff; }
+    .search-wrap svg { width: 14px; height: 14px; color: #bbb; flex-shrink: 0; }
+    .search-wrap:focus-within svg { color: #ff6a00; }
+    #wordSearch {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      width: 160px;
+      color: #333;
+    }
+    #wordSearch::placeholder { color: #bbb; }
+    .section-header-right { display: flex; align-items: center; gap: 10px; }
+    .words-count { font-size: 12px; color: #999; }
   </style>
 </head>
 <body>
@@ -284,7 +310,16 @@
     <div class="section">
       <div class="section-header">
         <h3>🔑 商机词汇总（进店来源词）</h3>
-        <button class="btn-download" onclick="downloadCSV('words')">下载 CSV</button>
+        <div class="section-header-right">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="wordSearch" placeholder="搜索来源词…" oninput="renderWords()" />
+          </div>
+          <span class="words-count" id="wordsCount"></span>
+          <button class="btn-download" onclick="downloadCSV('words')">下载 CSV</button>
+        </div>
       </div>
       <table id="wordsTable">
         <thead>
@@ -505,6 +540,8 @@ function analyze(rows) {
 
   sortState.words     = { key: 'cnt',  dir: 'desc' };
   sortState.countries = { key: 'conv', dir: 'desc' };
+  const searchEl = document.getElementById('wordSearch');
+  if (searchEl) searchEl.value = '';
   renderWords();
   renderCountries();
   updateSortIcons('words');
@@ -546,18 +583,37 @@ function copyText(btn, text) {
 // ===== 渲染商机词表格 =====
 function renderWords() {
   const { key, dir } = sortState.words;
-  const sorted = [...wordData].sort((a, b) => dir === 'desc' ? b[key] - a[key] : a[key] - b[key]);
+  const q = (document.getElementById('wordSearch') || {}).value || '';
+  const keyword = q.trim().toLowerCase();
+  const filtered = keyword
+    ? wordData.filter(d => d.word.toLowerCase().includes(keyword))
+    : wordData;
+  const sorted = [...filtered].sort((a, b) => dir === 'desc' ? b[key] - a[key] : a[key] - b[key]);
   const maxConv = Math.max(...sorted.map(d => d.conv), 1);
   const tbody = document.querySelector('#wordsTable tbody');
+  const countEl = document.getElementById('wordsCount');
+  if (countEl) {
+    countEl.textContent = keyword ? `${sorted.length} / ${wordData.length} 条` : `共 ${wordData.length} 条`;
+  }
+  if (sorted.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#bbb;padding:24px;">没有匹配的来源词</td></tr>`;
+    return;
+  }
   tbody.innerHTML = sorted.map((d, i) => {
     const badge = d.conv >= 10 ? '<span class="badge badge-high">高潜力</span>'
                 : d.conv >= 3  ? '<span class="badge badge-mid">中潜力</span>'
                 : '<span class="badge badge-low">待培育</span>';
+    const highlight = (text) => {
+      if (!keyword) return `<strong>${text}</strong>`;
+      const idx = text.toLowerCase().indexOf(keyword);
+      if (idx === -1) return `<strong>${text}</strong>`;
+      return `<strong>${text.slice(0, idx)}<mark style="background:#fff0c0;border-radius:2px;padding:0 1px;">${text.slice(idx, idx + keyword.length)}</mark>${text.slice(idx + keyword.length)}</strong>`;
+    };
     return `<tr>
       <td>${i+1}</td>
       <td>
         <div class="word-cell">
-          <strong>${d.word}</strong>
+          ${highlight(d.word)}
           <button class="copy-btn" onclick="copyText(this,'${d.word.replace(/'/g,"\\'")}');" title="复制关键词">${copySVG}</button>
         </div>
       </td>
